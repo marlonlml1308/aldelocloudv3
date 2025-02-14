@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Branch extends Model
 {
     Use HasFactory;
+    protected $table = 'branch';
     public function products(): HasMany
     {
         return  $this->hasMany(Products::class);
