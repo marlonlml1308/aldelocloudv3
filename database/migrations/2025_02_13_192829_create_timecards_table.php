@@ -22,9 +22,10 @@ return new class extends Migration
             $table->datetime('clockouttime');
             $table->datetime('break1begintime');
             $table->datetime('break1endtime');
+            $table->integer('totalworkminutes');
             $table->unsignedBigInteger('branchid');
             $table->timestamps();
-            $table->foreign('employeeid')->references('id')->on('employees');
+            $table->foreign('employeeid')->references('id')->on('employeefiles');
             $table->foreign('branchid')->references('id')->on('branch');
         });
     }

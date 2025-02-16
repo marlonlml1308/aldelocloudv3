@@ -24,6 +24,21 @@ class JobtitlesResource extends Resource
         return $form
             ->schema([
                 //
+                Forms\Components\TextInput::make('jobtitletext')->label('Cargo')
+                ->required()
+                ->maxLength(14),
+                Forms\Components\Toggle::make('jobtitleinactive')->label('Inactivo')
+                ->required()
+                ->inline(false),
+                Forms\Components\Select::make('defaultsecuritylevel')->label('Nivel de Seguridad')
+                ->required()
+                ->options([
+                    '1' => '1',
+                    '2' => '2',
+                    '3' => '3',
+                    '4' => '4',
+                    '5' => '5',
+                ])
             ]);
     }
 
@@ -32,6 +47,11 @@ class JobtitlesResource extends Resource
         return $table
             ->columns([
                 //
+                Tables\Columns\TextColumn::make('jobtitletext')->label('Cargo'),
+                Tables\Columns\TextColumn::make('defaultsecuritylevel')->label('Nivel de Seguridad'),
+                Tables\Columns\CheckboxColumn::make('jobtitleinactive')->label('Inactivo')
+                ->disabled(),
+
             ])
             ->filters([
                 //
@@ -40,9 +60,9 @@ class JobtitlesResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
@@ -60,5 +80,13 @@ class JobtitlesResource extends Resource
             'create' => Pages\CreateJobtitles::route('/create'),
             'edit' => Pages\EditJobtitles::route('/{record}/edit'),
         ];
+    }
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Cargo');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Cargos');
     }
 }

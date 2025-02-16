@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employees', function (Blueprint $table) {
+
+        Schema::create('employeefiles', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -20,7 +21,8 @@ return new class extends Migration
             $table->string('lastname');
             $table->unsignedBigInteger('jobtitleid');
             $table->string('securitylevel');
-            $table->string('accesscode');
+            $table->string('accesscode')->unique()->nullable();
+            $table->boolean('employeeinactive',false);
             $table->timestamps();
             $table->foreign('jobtitleid')->references('id')->on('jobtitles');
         });

@@ -18,6 +18,7 @@ class BranchResource extends Resource
     protected static ?string $model = Branch::class;
     protected static ?string $navigationGroup = 'Configuracion';
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
+    // protected static ?string $navigationLabel = 'Sucursales';
 
     public static function form(Form $form): Form
     {
@@ -35,7 +36,7 @@ class BranchResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id'),
-                Tables\Columns\TextColumn::make('branch'),
+                Tables\Columns\TextColumn::make('branch')->label('Sucursal'),
             ])
             ->filters([
                 //
@@ -65,4 +66,13 @@ class BranchResource extends Resource
             'edit' => Pages\EditBranch::route('/{record}/edit'),
         ];
     }
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Sucursal');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Sucursales');
+    }
 }
+

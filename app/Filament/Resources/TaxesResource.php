@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TaxesResource extends Resource
 {
@@ -42,8 +43,8 @@ class TaxesResource extends Resource
         return $table
             ->columns([
                 //
-                Tables\Columns\TextColumn::make('taxname'),
-                Tables\Columns\TextColumn::make('taxpercent'),
+                Tables\Columns\TextColumn::make('taxname')->label('Impuesto'),
+                Tables\Columns\TextColumn::make('taxpercent')->label('Porcentaje'),
             ])
             ->filters([
                 //
@@ -52,9 +53,10 @@ class TaxesResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                    // Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make(),
+                // ]),
             ]);
     }
 
@@ -72,5 +74,13 @@ class TaxesResource extends Resource
             'create' => Pages\CreateTaxes::route('/create'),
             'edit' => Pages\EditTaxes::route('/{record}/edit'),
         ];
+    }
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Impuesto');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Impuestos');
     }
 }

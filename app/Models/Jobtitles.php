@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Jobtitles extends Model
 {
     Use HasFactory;
-    public function products(): HasMany
+    public function employees(): HasMany
     {
-        return  $this->hasMany(Products::class);
+        return  $this->hasMany(Employees::class);
     }
 }

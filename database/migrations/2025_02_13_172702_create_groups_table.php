@@ -16,7 +16,6 @@ return new class extends Migration
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
             $table->id();
-            $table->string('menugroupid');
             $table->string('menugrouptext');
             $table->integer('displayindex');
             $table->boolean('menugroupinactive',false);

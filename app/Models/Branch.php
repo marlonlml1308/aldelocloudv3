@@ -19,4 +19,8 @@ class Branch extends Model
     {
         return  $this->hasMany(Employees::class);
     }
+    public function timecards(): HasMany
+    {
+        return  $this->hasMany(Timecards::class, 'branchid');
+    }
 }

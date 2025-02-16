@@ -30,11 +30,6 @@ class GroupsResource extends Resource
                 Forms\Components\Toggle::make('menugroupinactive')
                 ->required()
                 ->inline(false),
-                Forms\Components\TextInput::make('menugroupid')
-                ->required()
-                ->numeric()
-                ->minValue(1)
-                ->maxValue(100),
                 Forms\Components\TextInput::make('displayindex')
                 ->required()
                 ->numeric()
@@ -48,9 +43,10 @@ class GroupsResource extends Resource
         return $table
             ->columns([
                 //
-                Tables\Columns\TextColumn::make('menugroupid'),
+                Tables\Columns\TextColumn::make('id'),
                 Tables\Columns\TextColumn::make('menugrouptext')
                 ->searchable(),
+                Tables\Columns\TextColumn::make('displayindex')->label('Posicion'),
                 Tables\Columns\CheckboxColumn::make('menugroupinactive')
                 ->disabled()
             ])
@@ -81,5 +77,13 @@ class GroupsResource extends Resource
             'create' => Pages\CreateGroups::route('/create'),
             'edit' => Pages\EditGroups::route('/{record}/edit'),
         ];
+    }
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Grupo');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Grupos');
     }
 }

@@ -26,15 +26,10 @@ class CategoriesResource extends Resource
                 //
                 Forms\Components\TextInput::make('menucategorytext')
                 ->required()
-                ->maxLength(15),
+                ->maxLength(14),
                 Forms\Components\Toggle::make('menucategoryinactive')
                 ->required()
                 ->inline(false),
-                Forms\Components\TextInput::make('menucategoryid')
-                ->required()
-                ->numeric()
-                ->minValue(1)
-                ->maxValue(100),
             ]);
     }
 
@@ -43,7 +38,7 @@ class CategoriesResource extends Resource
         return $table
             ->columns([
                 //
-                Tables\Columns\TextColumn::make('menucategoryid'),
+                Tables\Columns\TextColumn::make('id'),
                 Tables\Columns\TextColumn::make('menucategorytext')
                 ->searchable(),
                 Tables\Columns\CheckboxColumn::make('menucategoryinactive')
@@ -76,5 +71,14 @@ class CategoriesResource extends Resource
             'create' => Pages\CreateCategories::route('/create'),
             'edit' => Pages\EditCategories::route('/{record}/edit'),
         ];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Categoria');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Categorias');
     }
 }
