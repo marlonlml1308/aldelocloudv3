@@ -11,10 +11,18 @@ class Products extends Model
     Use HasFactory;
     public function categories(): BelongsTo
     {
-        return  $this->belongsTo(Categories::class);
+        return  $this->belongsTo(Categories::class, 'menucategoryid');
     }
     public function groups(): BelongsTo
     {
-        return  $this->belongsTo(Groups::class);
+        return  $this->belongsTo(Groups::class, 'menugroupid');
+    }
+    public static function getTaxNames()
+    {
+        return \App\Models\Taxes::pluck('taxname', 'id')->toArray();
+    }
+    public static function getTaxOptions()
+    {
+        return Taxes::pluck('taxname', 'id')->toArray();
     }
 }

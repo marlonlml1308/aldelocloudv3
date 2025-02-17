@@ -42,6 +42,9 @@ try:
         # "JobTitles": [1],  # Tercera columna (jobtitleinactive) es booleana
     }
 
+    querynull="UPDATE EMPLOYEETIMECARDS SET SYNCHVER=NULL"
+    access_cursor.execute(querynull)
+    access_cursor.commit()
     # **6️⃣ Función para convertir booleanos**
     def convert_boolean(value):
         return 1 if value == True else 0

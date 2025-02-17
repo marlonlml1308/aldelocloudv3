@@ -28,6 +28,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jobtitles');
+        Schema::dropIfExists('timecards');       // Primero eliminar la más dependiente
+        Schema::dropIfExists('employeefiles');   // Luego la intermedia
+        Schema::dropIfExists('jobtitles');       // Finalmente la tabla principal
     }
 };

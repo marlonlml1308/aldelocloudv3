@@ -28,27 +28,35 @@ try:
 
     # **3️⃣ Diccionario de Queries**
     queries = {
-        "JobTitles": "SELECT jobtitletext, jobtitleinactive, defaultsecuritylevel FROM JobTitles ORDER BY JobtitleID",
-        "EmployeeFiles": "SELECT firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive FROM EmployeeFiles ORDER BY EmployeeID",
-        "MenuCategories": "SELECT menucategorytext, menucategoryinactive FROM MenuCategories ORDER BY MenuCategoryID",
-        "MenuGroups": "SELECT menugrouptext, menugroupinactive, displayindex FROM MenuGroups ORDER BY MenuGroupID",
-        # "MenuItems": "SELECT menucategorytext, menucategoryinactive FROM MenuCategories",
+        # "JobTitles": "SELECT jobtitletext, jobtitleinactive, defaultsecuritylevel FROM JobTitles ORDER BY JobtitleID",
+        # "EmployeeFiles": "SELECT firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive FROM EmployeeFiles ORDER BY EmployeeID",
+        # "MenuCategories": "SELECT menucategorytext, menucategoryinactive FROM MenuCategories ORDER BY MenuCategoryID",
+        # "MenuGroups": "SELECT menugrouptext, menugroupinactive, displayindex FROM MenuGroups ORDER BY MenuGroupID",
+        "MenuItems": """SELECT MenuItemText, MenuCategoryID, MenuGroupID, DisplayIndex, DefaultUnitPrice, MenuItemInActive, MenuItemInStock, MenuItemTaxable,
+        MenuItemDiscountable, MenuItemType, MenuItemPopUpHeaderID, GSTApplied, Bar, Barcode, GasPump, LiquorTaxApplied, DineInPrice, DriveThruPrice,
+        DeliveryPrice, OrderByWeight FROM MenuItems order by menuitemid""",
     }
 
     # **4️⃣ Diccionario de INSERTS**
     inserts = {
-        "JobTitles": "INSERT INTO JobTitles (jobtitletext, jobtitleinactive,defaultsecuritylevel, created_at,updated_at) VALUES (?, ?, ?,NOW(),NOW())",
-        "EmployeeFiles": "INSERT INTO EmployeeFiles (firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive,created_at,updated_at) VALUES (?, ?, ?, ?, ?, ?,NOW(),NOW())",
-        "MenuCategories": "INSERT INTO Categories (menucategorytext, menucategoryinactive,created_at,updated_at) VALUES (?, ?,NOW(),NOW())",
-        "MenuGroups": "INSERT INTO Groups (menugrouptext, menugroupinactive, displayindex,created_at,updated_at) VALUES (?, ?, ?,NOW(),NOW())",
+        # "JobTitles": "INSERT INTO JobTitles (jobtitletext, jobtitleinactive,defaultsecuritylevel, created_at,updated_at) VALUES (?, ?, ?,NOW(),NOW())",
+        # "EmployeeFiles": "INSERT INTO EmployeeFiles (firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive,created_at,updated_at) VALUES (?, ?, ?, ?, ?, ?,NOW(),NOW())",
+        # "MenuCategories": "INSERT INTO Categories (menucategorytext, menucategoryinactive,created_at,updated_at) VALUES (?, ?,NOW(),NOW())",
+         "MenuItems": """INSERT INTO products (
+        MenuItemText, MenuCategoryID, MenuGroupID, DisplayIndex, DefaultUnitPrice, MenuItemInActive, MenuItemInStock,
+        MenuItemTaxable, MenuItemDiscountable, MenuItemType, MenuItemPopUpHeaderID, GSTApplied, Bar, Barcode, GasPump,
+        LiquorTaxApplied, DineInPrice, DriveThruPrice, DeliveryPrice, OrderByWeight,created_at,updated_at)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,NOW(),NOW());""",
     }
 
     # **5️⃣ Definir columnas booleanas por tabla**
     boolean_columns = {
-        "JobTitles": [1],  # Tercera columna (jobtitleinactive) es booleana
-        "EmployeeFiles": [5],  # Tercera y cuarta columnas (is_active, is_manager) son booleanas
-        "MenuCategories": [1],
-        "MenuGroups": [1],
+        # "JobTitles": [1],  # Tercera columna (jobtitleinactive) es booleana
+        # "EmployeeFiles": [5],  # Tercera y cuarta columnas (is_active, is_manager) son booleanas
+        # "MenuCategories": [1],
+        # "MenuGroups": [1],
+        "MenuItems": [5, 6, 7, 8, 11, 12, 15, 19]
     }
 
     # **6️⃣ Función para convertir booleanos**
@@ -91,11 +99,11 @@ try:
             # 🔹 **Actualizar synchver**
         try:
             tables = {
-                "JobTitles": {"mysql_table": "JobTitles", "mysql_key": "id", "access_table": "JobTitles", "access_key": "jobtitleid"},
-                "MenuCategories": {"mysql_table": "Categories", "mysql_key": "id", "access_table": "MenuCategories", "access_key": "menucategoryid"},
-                "MenuGroups": {"mysql_table": "Categories", "mysql_key": "id", "access_table": "MenuGroups", "access_key": "menugroupid"},
-                "EmployeeFiles": {"mysql_table": "EmployeeFiles", "mysql_key": "id", "access_table": "EmployeeFiles", "access_key": "employeeid"},
-                "EmployeeTimeCards": {"mysql_table": "timecards", "mysql_key": "id", "access_table": "EmployeeTimeCards", "access_key": "employeeid"},
+                # "JobTitles": {"mysql_table": "JobTitles", "mysql_key": "id", "access_table": "JobTitles", "access_key": "jobtitleid"},
+                # "MenuCategories": {"mysql_table": "Categories", "mysql_key": "id", "access_table": "MenuCategories", "access_key": "menucategoryid"},
+                # "MenuGroups": {"mysql_table": "Categories", "mysql_key": "id", "access_table": "MenuGroups", "access_key": "menugroupid"},
+                # "EmployeeFiles": {"mysql_table": "EmployeeFiles", "mysql_key": "id", "access_table": "EmployeeFiles", "access_key": "employeeid"},
+                # "EmployeeTimeCards": {"mysql_table": "timecards", "mysql_key": "id", "access_table": "EmployeeTimeCards", "access_key": "employeeid"},
             }
 
 

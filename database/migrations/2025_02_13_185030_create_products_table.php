@@ -23,14 +23,15 @@ return new class extends Migration
             $table->decimal('defaultunitprice',total: 10, places: 2);
             $table->boolean('menuiteminactive',false);
             $table->boolean('menuiteminstock',true);
+            $table->boolean('menuitemdiscountable',true);
             $table->string('menuitemtype');
             $table->integer('menuitempopupheaderid')->nullable();
             $table->boolean('menuitemtaxable',false);
             $table->boolean('gstapplied',false);
             $table->boolean('liquortaxapplied',false);
             $table->string('gaspump');
-            $table->boolean('bar',true);
-            $table->string('barcode')->unique();
+            $table->boolean('bar',false);
+            $table->string('barcode')->nullable();
             $table->decimal('dineinprice',total: 10, places: 2)->nullable();
             $table->decimal('takeoutprice',total: 10, places: 2)->nullable();
             $table->decimal('drivethruprice',total: 10, places: 2)->nullable();
@@ -38,8 +39,8 @@ return new class extends Migration
             $table->boolean('orderbyweight',false);
             $table->integer('qtycountdown')->nullable();
             $table->timestamps();
-            $table->foreign('menucategoryid')->references('id')->on('categories');
-            $table->foreign('menugroupid')->references('id')->on('groups');
+            $table->foreign('menucategoryid')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('menugroupid')->references('id')->on('groups')->onDelete('cascade');
         });
     }
 

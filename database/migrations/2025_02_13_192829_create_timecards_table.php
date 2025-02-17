@@ -25,8 +25,8 @@ return new class extends Migration
             $table->integer('totalworkminutes');
             $table->unsignedBigInteger('branchid');
             $table->timestamps();
-            $table->foreign('employeeid')->references('id')->on('employeefiles');
-            $table->foreign('branchid')->references('id')->on('branch');
+            $table->foreign('employeeid')->references('id')->on('employeefiles')->onDelete('cascade');
+            $table->foreign('branchid')->references('id')->on('branch')->onDelete('cascade');
         });
     }
 

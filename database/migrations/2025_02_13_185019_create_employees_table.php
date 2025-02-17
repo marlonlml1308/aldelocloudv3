@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('accesscode')->unique()->nullable();
             $table->boolean('employeeinactive',false);
             $table->timestamps();
-            $table->foreign('jobtitleid')->references('id')->on('jobtitles');
+            $table->foreign('jobtitleid')->references('id')->on('jobtitles')->onDelete('cascade');
         });
     }
 
