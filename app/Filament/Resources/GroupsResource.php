@@ -11,7 +11,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
+
 
 class GroupsResource extends Resource
 {
@@ -25,16 +28,54 @@ class GroupsResource extends Resource
             ->schema([
                 //
                 Forms\Components\TextInput::make('menugrouptext')
+                ->label('Grupo')
                 ->required()
-                ->maxLength(15),
+                ->maxLength(14)
+                ->dehydrateStateUsing(fn (string $state) => strtoupper($state))
+                ->rule(function (string $operation, ?Model $record = null) {
+                    return function ($attribute, $value, $fail) use ($operation, $record) {
+                        if ($value !== null) {
+                            $query = DB::table('groups')
+                                ->where('menugrouptext', $value);
+                            if ($operation === 'edit' && $record) {
+                                $query->where('id', '!=', $record->id);
+                            }
+                            $exists = $query->exists();
+                            if ($exists) {
+                                $fail('El nombre ya está en uso. Debe ser único.');}
+                        }
+                    };
+                }),
                 Forms\Components\Toggle::make('menugroupinactive')
+                ->label('Inactivo')
                 ->required()
-                ->inline(false),
-                Forms\Components\TextInput::make('displayindex')
+                ->inline(false)
+                ->reactive()
+                ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('displayindex', $state ? -1 : null)),
+                Forms\Components\Select::make('displayindex')
+                ->label('Posicion')
                 ->required()
-                ->numeric()
-                ->minValue(-1)
-                ->maxValue(31),
+                ->options(function (string $operation, ?Model $record = null) {
+                    $query = DB::table('groups')
+                        ->where('menugroupinactive', '!=', true)
+                        ->pluck('displayindex');
+                    if ($operation === 'edit' && $record) {
+                        $query = $query->filter(fn ($value) => $value != $record->displayindex);
+                    }
+                    $allPossibleValues = range(-1, 31);
+                    $availableValues = collect($allPossibleValues)
+                        ->filter(function ($value) use ($query) {
+                            return !$query->contains($value);
+                        })
+                        ->mapWithKeys(function ($value) {
+                            return [$value => $value === -1 ? 'Inactivo (-1)' : "Posición {$value}"];
+                        })
+                        ->toArray();
+
+                    return $availableValues;
+                })
+                ->searchable()
+                ->preload(),
             ]);
     }
 
@@ -45,10 +86,15 @@ class GroupsResource extends Resource
                 //
                 Tables\Columns\TextColumn::make('id'),
                 Tables\Columns\TextColumn::make('menugrouptext')
+                ->label('Grupo')
                 ->searchable(),
-                Tables\Columns\TextColumn::make('displayindex')->label('Posicion'),
+                Tables\Columns\TextColumn::make('displayindex')
+                ->label('Posicion')
+                ->sortable(),
                 Tables\Columns\CheckboxColumn::make('menugroupinactive')
+                ->label('Inactivo')
                 ->disabled()
+                ->sortable()
             ])
             ->filters([
                 //

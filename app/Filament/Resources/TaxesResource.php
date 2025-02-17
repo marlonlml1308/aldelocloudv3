@@ -13,7 +13,9 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TaxesResource extends Resource
@@ -29,7 +31,22 @@ class TaxesResource extends Resource
                 //
                 Forms\Components\TextInput::make('taxname')
                 ->required()
-                ->maxLength(30),
+                ->maxLength(30)
+                ->dehydrateStateUsing(fn (string $state) => strtoupper($state))
+                ->rule(function (string $operation, ?Model $record = null) {
+                    return function ($attribute, $value, $fail) use ($operation, $record) {
+                        if ($value !== null) {
+                            $query = DB::table('taxes')
+                                ->where('taxname', $value);
+                            if ($operation === 'edit' && $record) {
+                                $query->where('id', '!=', $record->id);
+                            }
+                            $exists = $query->exists();
+                            if ($exists) {
+                                $fail('El nombre ya está en uso. Debe ser único.');}
+                        }
+                    };
+                }),
                 Forms\Components\TextInput::make('taxpercent')
                 ->required()
                 ->numeric()

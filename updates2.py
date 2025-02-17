@@ -22,6 +22,7 @@ queries = {
     "JobTitles": "SELECT id, jobtitletext, jobtitleinactive,defaultsecuritylevel, updated_at FROM JobTitles",
     "MenuCategories": "SELECT id, menucategorytext, menucategoryinactive, updated_at FROM Categories",
     "MenuGroups": "SELECT id, menugrouptext, menugroupinactive, displayindex, updated_at FROM Groups",
+    "EmployeeFiles": "SELECT id, firstname, lastname, jobtitleid, securitylevel, accesscode, employeeinactive, updated_at FROM EmployeeFiles",
 }
 
 # 📌 Diccionario de queries de actualización para Access
@@ -29,6 +30,7 @@ updates = {
     "JobTitles": "UPDATE JobTitles SET jobtitletext=?, jobtitleinactive=?,defaultsecuritylevel=?,synchver=CDate(?) WHERE jobtitleid=?",
     "MenuCategories": "UPDATE MenuCategories SET menucategorytext=?, menucategoryinactive=?, synchver=CDate(?) WHERE menucategoryid=?",
     "MenuGroups": "UPDATE MenuGroups SET menugrouptext=?, menugroupinactive=?, displayindex=?, synchver=CDate(?) WHERE menugroupid=?",
+    "EmployeeFiles": "UPDATE EmployeeFiles SET firstname=?, lastname=?, jobtitleid=?, securitylevel=?, accesscode=?, employeeinactive=?, synchver=CDate(?) WHERE employeeid=?",
 }
 
 # 📌 Mapeo de nombres de tablas entre MySQL y Access
@@ -36,6 +38,7 @@ tables = {
     "JobTitles": {"mysql_table": "JobTitles", "mysql_key": "id", "access_table": "JobTitles", "access_key": "jobtitleid"},
     "MenuCategories": {"mysql_table": "categories", "mysql_key": "id", "access_table": "MenuCategories", "access_key": "menucategoryid"},
     "MenuGroups": {"mysql_table": "groups", "mysql_key": "id", "access_table": "MenuGroups", "access_key": "menugroupid"},
+    "EmployeeFiles": {"mysql_table": "Employees", "mysql_key": "id", "access_table": "EmployeeFiles", "access_key": "employeeid"},
 }
 
 # **5️⃣ Definir columnas booleanas por tabla**
@@ -59,7 +62,7 @@ try:
     mysql_cursor = mysql_conn.cursor()
 
     # 🔄 **Sincronización de datos**
-    for table in ["MenuCategories", "MenuGroups", "JobTitles"]:
+    for table in ["MenuCategories", "MenuGroups", "JobTitles", "EmployeeFiles"]:
         print(f"🔄 Sincronizando {table}...")
 
         # 🔹 Obtener datos de MySQL
@@ -113,15 +116,6 @@ try:
                         if isinstance(updated_at, datetime) and isinstance(synchver, datetime) and updated_at > synchver:
                             print(f"🔄 Actualizando {table} -> {primary_key}: {updated_at} > {synchver}")
                             update_query = updates[table]
-                            #new_data = list(row)[1:]  # Omitimos la PK en el set de valores
-                            # updated_at_formatted = updated_at.strftime("#%m/%d/%Y %I:%M:%S %p#")  # Formato Access
-                            # 🔹 Convertir `updated_at` a objeto `datetime` si aún no lo es
-                            # if isinstance(updated_at_formatted, str):
-                            #     try:
-                            #         updated_at = datetime.strptime(updated_at_formatted, "%m/%d/%Y %I:%M:%S %p")
-                            #     except ValueError:
-                            #         print(f"⚠️ Error al convertir fecha: {updated_at_formatted}")
-                            #         continue
                             # Insertar `updated_at` en la penúltima posición
                             new_data[-1] = updated_at
 

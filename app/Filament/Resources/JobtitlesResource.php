@@ -11,7 +11,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
 
 class JobtitlesResource extends Resource
 {
@@ -26,7 +28,22 @@ class JobtitlesResource extends Resource
                 //
                 Forms\Components\TextInput::make('jobtitletext')->label('Cargo')
                 ->required()
-                ->maxLength(14),
+                ->maxLength(14)
+                ->dehydrateStateUsing(fn (string $state) => strtoupper($state))
+                ->rule(function (string $operation, ?Model $record = null) {
+                    return function ($attribute, $value, $fail) use ($operation, $record) {
+                        if ($value !== null) {
+                            $query = DB::table('jobtitles')
+                                ->where('jobtitletext', $value);
+                            if ($operation === 'edit' && $record) {
+                                $query->where('id', '!=', $record->id);
+                            }
+                            $exists = $query->exists();
+                            if ($exists) {
+                                $fail('El nombre ya está en uso. Debe ser único.');}
+                        }
+                    };
+                }),
                 Forms\Components\Toggle::make('jobtitleinactive')->label('Inactivo')
                 ->required()
                 ->inline(false),

@@ -11,8 +11,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Illuminate\Support\Facades\DB;
 
 class EmployeesResource extends Resource
 {
@@ -31,22 +33,47 @@ class EmployeesResource extends Resource
                 Forms\Components\TextInput::make('lastname')->label('Apellido')
                 ->required()
                 ->maxLength(15),
-                Forms\Components\Select::make('jobtitleid')->label('Cargo')
-                ->required()
-                ->relationship(name: 'Jobtitles', titleAttribute: 'jobtitletext'),
-                Forms\Components\Select::make('securitylevel')->label('Nivel de Seguridad')
-                ->required()
-                ->options([
-                    '1' => '1',
-                    '2' => '2',
-                    '3' => '3',
-                    '4' => '4',
-                    '5' => '5',
+                Forms\Components\Grid::make(3)
+                ->schema([
+                    Forms\Components\Select::make('jobtitleid')->label('Cargo')
+                    ->required()
+                    ->relationship(name: 'Jobtitles', titleAttribute: 'jobtitletext'),
+                    Forms\Components\Select::make('securitylevel')->label('Nivel de Seguridad')
+                    ->required()
+                    ->options([
+                        '1' => '1',
+                        '2' => '2',
+                        '3' => '3',
+                        '4' => '4',
+                        '5' => '5',
+                    ]),
+                    Forms\Components\Toggle::make('employeeinactive')
+                    ->label('Inactivo')
+                    ->required()
+                    ->inline(false)
+                    ->reactive() // Detecta cambios en el toggle
+                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('accesscode', $state ? null : '')), // Setea NULL si está activo
                 ]),
-                Forms\Components\TextInput::make('accesscode')->label('Codigo')
-                ->required()
+                Forms\Components\TextInput::make('accesscode')
+                ->label('Codigo')
+                ->nullable() // Permite valores NULL
                 ->numeric()
-                ->maxLength(7),
+                ->maxLength(8)
+                ->rule(function (string $operation, ?Model $record = null) {
+                    return function ($attribute, $value, $fail) use ($operation, $record) {
+                        if ($value !== null) {
+                            $query = DB::table('employeefiles')
+                                ->where('accesscode', $value);
+                            if ($operation === 'edit' && $record) {
+                                $query->where('id', '!=', $record->id);
+                            }
+                            $exists = $query->exists();
+                            if ($exists) {
+                                $fail('El codigo ya está en uso');
+                            }
+                        }
+                    };
+                }),
             ]);
     }
 
