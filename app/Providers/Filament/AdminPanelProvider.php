@@ -61,8 +61,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             // ->plugin(\TomatoPHP\FilamentApi\FilamentAPIPlugin::make())
             ->plugins([
-                ApiServicePlugin::make(),
-                FilamentSpatieRolesPermissionsPlugin::make(),
+                // ApiServicePlugin::make(),
+                // FilamentSpatieRolesPermissionsPlugin::make(),
             ])
             ;
     }
