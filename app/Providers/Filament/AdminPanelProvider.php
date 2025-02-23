@@ -17,8 +17,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Rupadana\ApiService\ApiServicePlugin;
+use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -63,6 +65,9 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 // ApiServicePlugin::make(),
                 // FilamentSpatieRolesPermissionsPlugin::make(),
+                // FilamentSpatieLaravelBackupPlugin::make()
+                // ->timeout(120)
+                // ->authorize(fn (): bool => Auth::user()->email === 'pastaio@admin.com'),
             ])
             ;
     }

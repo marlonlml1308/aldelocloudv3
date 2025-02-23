@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Support\ServiceProvider;
 use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,10 +27,15 @@ class AppServiceProvider extends ServiceProvider
         //
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
             $switch
-                ->locales(['es']); // also accepts a closure
+                ->locales(['es','en']); // also accepts a closure
         });
 
         Model::unguard();
+
+        Gate::define('viewPulse', function (User $user) {
+            return true;
+            // $user->isAdmin();
+        });
 
         // Route::middleware('api')
         // ->prefix('api')
