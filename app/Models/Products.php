@@ -25,4 +25,27 @@ class Products extends Model
     {
         return Taxes::pluck('taxname', 'id')->toArray();
     }
+        public static function getModuleName($moduleId)
+    {
+        return self::where('id', $moduleId)->value('taxname') ?? 'Desconocido';
+    }
+    public function getPriceWithTaxAttribute()
+    {
+        // Aseguramos que defaultunitprice tenga un valor numérico
+        $basePrice = $this->defaultunitprice ?? 0;
+        $taxTotal = 0;
+
+        // Sumamos los porcentajes si los impuestos están activos
+        if ($this->menuitemtaxable) {
+            $taxTotal += \App\Models\Taxes::getTaxPercent(1) ?? 0;
+        }
+        if ($this->gstapplied) {
+            $taxTotal += \App\Models\Taxes::getTaxPercent(2) ?? 0;
+        }
+        if ($this->liquortaxapplied) {
+            $taxTotal += \App\Models\Taxes::getTaxPercent(3) ?? 0;
+        }
+
+        return $basePrice * (1 + ($taxTotal / 100));
+    }
 }

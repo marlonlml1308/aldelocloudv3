@@ -29,7 +29,7 @@ try:
     # **3️⃣ Diccionario de Queries**
     queries = {
         "JobTitles": "SELECT jobtitletext, jobtitleinactive, defaultsecuritylevel FROM JobTitles ORDER BY JobtitleID",
-        "EmployeeFiles": "SELECT firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive FROM EmployeeFiles ORDER BY EmployeeID",
+        "EmployeeFiles": "SELECT firstname, lastname, jobtitleid, socialsecuritynumber,securitylevel,accesscode,employeeinactive FROM EmployeeFiles ORDER BY EmployeeID",
         "MenuCategories": "SELECT menucategorytext, menucategoryinactive FROM MenuCategories ORDER BY MenuCategoryID",
         "MenuGroups": "SELECT menugrouptext, menugroupinactive, displayindex FROM MenuGroups ORDER BY MenuGroupID",
         # "MenuItems": "SELECT menucategorytext, menucategoryinactive FROM MenuCategories",
@@ -38,15 +38,15 @@ try:
     # **4️⃣ Diccionario de INSERTS**
     inserts = {
         "JobTitles": "INSERT INTO JobTitles (jobtitletext, jobtitleinactive,defaultsecuritylevel, created_at,updated_at) VALUES (?, ?, ?,NOW(),NOW())",
-        "EmployeeFiles": "INSERT INTO EmployeeFiles (firstname, lastname, jobtitleid, securitylevel,accesscode,employeeinactive,created_at,updated_at) VALUES (?, ?, ?, ?, ?, ?,NOW(),NOW())",
+        "EmployeeFiles": "INSERT INTO EmployeeFiles (firstname, lastname, jobtitleid, socialsecuritynumber,securitylevel,accesscode,employeeinactive,created_at,updated_at) VALUES (?, ?, ?, ?, ?, ?, ?,NOW(),NOW())",
         "MenuCategories": "INSERT INTO Categories (menucategorytext, menucategoryinactive,created_at,updated_at) VALUES (?, ?,NOW(),NOW())",
         "MenuGroups": "INSERT INTO Groups (menugrouptext, menugroupinactive, displayindex,created_at,updated_at) VALUES (?, ?, ?,NOW(),NOW())",
     }
 
     # **5️⃣ Definir columnas booleanas por tabla**
     boolean_columns = {
-        "JobTitles": [1],  # Tercera columna (jobtitleinactive) es booleana
-        "EmployeeFiles": [5],  # Tercera y cuarta columnas (is_active, is_manager) son booleanas
+        "JobTitles": [1],
+        "EmployeeFiles": [6],
         "MenuCategories": [1],
         "MenuGroups": [1],
     }

@@ -10,4 +10,10 @@ class Taxes extends Model
     {
         return self::where('id', $taxId)->value('taxname') ?? 'Desconocido';
     }
+    // En App\Models\Taxes.php
+    public static function getTaxPercent(int $taxId): float
+    {
+        return (float) self::where('id', $taxId)->value('taxpercent');
+    }
+
 }

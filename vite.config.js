@@ -8,4 +8,5 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    base: '/public/', // Asegúrate de que coincida con la ruta de tu hosting
 });

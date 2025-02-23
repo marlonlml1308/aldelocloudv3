@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Configuracion';
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
     public static function form(Form $form): Form
     {
@@ -39,10 +39,10 @@ class UserResource extends Resource
                 ->required()
                 // ->password()
                 ->minLength(5),
-                Select::make('roles')
-                ->multiple()
-                ->relationship('roles','name')
-                ->preload()
+                // Select::make('roles')
+                // ->multiple()
+                // ->relationship('roles','name')
+                // ->preload()
             ]);
     }
 
@@ -52,7 +52,7 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nombre'),
                 Tables\Columns\TextColumn::make('email')->label('Correo'),
-                Tables\Columns\TextColumn::make('roles.name')->label('Rol'),
+                // Tables\Columns\TextColumn::make('roles.name')->label('Rol'),
             ])
             ->filters([
                 //
@@ -81,5 +81,13 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+    public static function getModelLabel(): string
+    {
+        return __(key: 'Usuario');
+    }
+    public static function getPluralModelLabel(): string
+    {
+        return __(key: 'Usuarios');
     }
 }

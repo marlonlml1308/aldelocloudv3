@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('lastname');
             $table->unsignedBigInteger('jobtitleid');
             $table->string('securitylevel');
+            $table->string('socialsecuritynumber');
             $table->string('accesscode')->unique()->nullable();
             $table->boolean('employeeinactive',false);
             $table->timestamps();

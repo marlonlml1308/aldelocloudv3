@@ -3,10 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\Branch;
+use App\Models\Modules;
+use App\Models\Role;
 use App\Models\Taxes;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role as ModelsRole;
 
 class DatabaseSeeder extends Seeder
 {
@@ -52,6 +55,22 @@ class DatabaseSeeder extends Seeder
         $taxes->taxname = 'IVA 5%';
         $taxes->taxpercent = 5;
         $taxes->save();
+
+        $modules = new Modules();
+        $modules->name = 'MESAS';
+        $modules->save();
+
+        $modules = new Modules();
+        $modules->name = 'PARA LLEVAR';
+        $modules->save();
+
+        $modules = new Modules();
+        $modules->name = 'RAPPI';
+        $modules->save();
+
+        $modules = new Modules();
+        $modules->name = 'DOMICILIOS';
+        $modules->save();
 
     }
 }

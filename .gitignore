@@ -1,5 +1,7 @@
 /.phpunit.cache
 /node_modules
+/__pycache__
+/venv
 /public/build
 /public/hot
 /public/storage

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->boolean('menuiteminstock',true);
             $table->boolean('menuitemdiscountable',true);
             $table->string('menuitemtype');
-            $table->integer('menuitempopupheaderid')->nullable();
+            $table->string('menuitempopupheaderid')->nullable();
             $table->boolean('menuitemtaxable',false);
             $table->boolean('gstapplied',false);
             $table->boolean('liquortaxapplied',false);
