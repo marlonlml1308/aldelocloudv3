@@ -19,17 +19,17 @@ from datetime import datetime
 def insertsdata(access_conn, access_cursor, mysql_conn, mysql_cursor):
     # 📌 Diccionario de queries para obtener datos de MySQL
     queries = {
-        "JobTitles": "SELECT id, jobtitletext, jobtitleinactive, defaultsecuritylevel, updated_at,id FROM JobTitles ORDER BY id",
-        "MenuCategories": "SELECT id, menucategorytext, menucategoryinactive, updated_at,id FROM Categories ORDER BY id",
-        "MenuGroups": "SELECT id, menugrouptext, menugroupinactive, displayindex, updated_at,id FROM Groups ORDER BY id",
-        "EmployeeFiles": "SELECT id, firstname, lastname, jobtitleid, securitylevel, accesscode,employeeinactive, updated_at,id FROM EmployeeFiles ORDER BY id",
+        "JobTitles": "SELECT id, jobtitletext, jobtitleinactive, defaultsecuritylevel, updated_at,id FROM jobtitles ORDER BY id",
+        "MenuCategories": "SELECT id, menucategorytext, menucategoryinactive, updated_at,id FROM categories ORDER BY id",
+        "MenuGroups": "SELECT id, menugrouptext, menugroupinactive, displayindex,true, updated_at,id FROM groups ORDER BY id",
+        "EmployeeFiles": "SELECT id, firstname, lastname, jobtitleid, securitylevel, accesscode,employeeinactive, updated_at,id FROM employeefiles ORDER BY id",
     }
 
     # 📌 Diccionario de queries de inserción en Access
     inserts = {
         "JobTitles": "INSERT INTO JobTitles (jobtitleid, jobtitletext, jobtitleinactive, defaultsecuritylevel,DefaultPayBasis,DefaultPayRate, synchver, ROWGUID) VALUES (?, ?, ?, ?,'2',0,CDate(?),?)",
         "MenuCategories": "INSERT INTO MenuCategories (menucategoryid, menucategorytext, menucategoryinactive, synchver, ROWGUID) VALUES (?, ?, ?, CDate(?),?)",
-        "MenuGroups": "INSERT INTO MenuGroups (menugroupid, menugrouptext, menugroupinactive, displayindex,buttoncolor, synchver,ROWGUID) VALUES (?, ?, ?, ?,11198973,CDate(?), ?)",
+        "MenuGroups": "INSERT INTO MenuGroups (menugroupid, menugrouptext, menugroupinactive, displayindex,buttoncolor,showcaption, synchver,ROWGUID) VALUES (?, ?, ?, ?, 11198973,?,CDate(?), ?)",
         "EmployeeFiles": """INSERT INTO EmployeeFiles (employeeid, firstname, lastname, jobtitleid, securitylevel, accesscode, employeeinactive, synchver, TIPSRECEIVED,PAYBASIS,PAYRATE,
                         PREFUSERINTERFACELOCALE,ORDERENTRYUSESECLANG,EMPLOYEEISDRIVER,USESTAFFBANK,SCHEDULENOTENFORCED,USEHOSTESS,ISASERVER,NOCASHIEROUT,
                         DINEINNOTAVAIL,BARNOTAVAIL,TAKEOUTNOTAVAIL,DRIVETHRUNOTAVAIL,DELIVERYNOTAVAIL,USEEMAIL,ROWGUID)
@@ -49,7 +49,7 @@ def insertsdata(access_conn, access_cursor, mysql_conn, mysql_cursor):
         # mysql_cursor = mysql_conn.cursor()
 
         # 🔄 **Insertar datos en Access en el mismo orden de MySQL**
-        for table in ["JobTitles","MenuGroups", "EmployeeFiles"]:
+        for table in ["JobTitles","MenuGroups", "EmployeeFiles","MenuCategories"]:
             # "MenuCategories",
             print(f"🔄 Procesando {table}...")
 

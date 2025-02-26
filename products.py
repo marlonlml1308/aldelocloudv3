@@ -2,6 +2,7 @@ import pyodbc
 from datetime import datetime
 import decimal
 from tkinter import messagebox
+import winreg
 
 # # 📌 Configuración de la conexión a Access
 # access_conn_str = (
@@ -18,6 +19,37 @@ from tkinter import messagebox
 #     "USER=root;PASSWORD=;"
 #     "OPTION=3;"
 # )
+
+def leer_clave_registro():
+    try:
+        ruta = r"Software\VB and VBA Program Settings\Aldelo For Restaurants\Version 3"
+        clave = "Data Source"
+        reg = winreg.OpenKey(winreg.HKEY_CURRENT_USER, ruta, 0, winreg.KEY_READ)
+        valor, _ = winreg.QueryValueEx(reg, clave)
+        winreg.CloseKey(reg)
+        return valor
+    except FileNotFoundError:
+        return "Clave no encontrada"
+    except Exception as e:
+        return f"Error: {e}"
+
+def dbconn():
+    ruta = leer_clave_registro()
+    print(f"📌 Ruta de base de datos: {ruta}")
+    access_conn = pyodbc.connect(rf'DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={ruta};')
+    access_cursor = access_conn.cursor()
+
+    mysql_conn_str = (
+        "DRIVER={MySQL ODBC 9.2 ANSI Driver};"
+        "SERVER=solucionesintegralespos.com;PORT=3306;"
+        "DATABASE=u344335374_aldeloposnube;"
+        "USER=u344335374_aldeoadmin;PASSWORD=Sip66353782;"
+        "OPTION=3;"
+    )
+    mysql_conn = pyodbc.connect(mysql_conn_str)
+    mysql_cursor = mysql_conn.cursor()
+    return access_conn, access_cursor, mysql_conn, mysql_cursor
+
 def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 Diccionario de queries para obtener datos de MySQL
     queries = {
         "MenuItems": """SELECT Barcode, MenuItemText, MenuCategoryID, MenuGroupID, DisplayIndex, DefaultUnitPrice,
@@ -32,7 +64,7 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
         "MenuItems": """UPDATE MenuItems SET MenuItemText=?, MenuCategoryID=?, MenuGroupID=?, DisplayIndex=?,
                         DefaultUnitPrice=?, MenuItemInActive=?, MenuItemInStock=?, MenuItemTaxable=?, MenuItemDiscountable=?,
                         MenuItemType=?, MenuItemPopUpHeaderID=?, GSTApplied=?, Bar=?, Barcode=?, GasPump=?, LiquorTaxApplied=?,
-                        DineInPrice=?,TakeOutPrice=?, DriveThruPrice=?, DeliveryPrice=?, OrderByWeight=?,MenuItemPopUpChoiceText=?,MenuItemDescription=?, synchver=CDate(?)
+                        DineInPrice=?,TakeOutPrice=?, DriveThruPrice=?, DeliveryPrice=?, OrderByWeight=?,MenuItemPopUpChoiceText=?,MenuItemDescription=?, buttoncolor=?,synchver=CDate(?)
                         WHERE barcode=?""",
     }
 
@@ -41,8 +73,8 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
         "MenuItems": """INSERT INTO MenuItems
         (MenuItemText, MenuCategoryID, MenuGroupID, DisplayIndex, DefaultUnitPrice, MenuItemInActive, MenuItemInStock, MenuItemTaxable, MenuItemDiscountable,
         MenuItemType, MenuItemPopUpHeaderID, GSTApplied, Bar, Barcode, GasPump, LiquorTaxApplied, DineInPrice,TakeOutPrice, DriveThruPrice, DeliveryPrice,
-        OrderByWeight,MenuItemPopUpChoiceText,MenuItemDescription,ROWGUID,MenuItemNotification, synchver)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, CDate(?))""",
+        OrderByWeight,MenuItemPopUpChoiceText,MenuItemDescription,ROWGUID,MenuItemNotification, buttoncolor,showcaption, synchver)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, CDate(?))""",
     }
 
     # 📌 Mapeo de nombres de tablas entre MySQL y Access
@@ -102,6 +134,16 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
             raise ValueError("La columna MenuItemID no se encontró en Access.")
         # print(f"🔎 Claves (Barcode) en Access: {list(access_data.keys())}")
 
+                # --- NUEVA PARTE: Obtener datos de la tabla items para buscar el popup_header_barcode ---
+        try:
+            access_cursor.execute("SELECT MenuItemID, Barcode FROM Menuitems")
+            items_rows = access_cursor.fetchall()
+            # Se asume que el índice 0 es MenuItemID y el 1 es Barcode
+            items_data = {str(row[1]).strip(): row[0] for row in items_rows}
+        except Exception as ex:
+            print(f"❌ Error al obtener datos de la tabla items: {ex}")
+            items_data = {}
+
         # --- Obtener datos de MySQL ---
         query_mysql = queries[table]
         mysql_cursor.execute(query_mysql)
@@ -116,6 +158,12 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
 
         # --- Comparar y actualizar/inserción ---
         # --- Dentro del bucle que recorre cada registro de MySQL ---
+        # Separar filas en dos grupos
+        # priority_rows = [row for row in mysql_rows if len(row) > 10 and row[10] == 2]
+        # other_rows = [row for row in mysql_rows if len(row) <= 10 or row[10] != 2]
+
+        # # Unir ambas listas, primero las filas con menuitemtype=2
+        # sorted_rows = priority_rows + other_rows
         for row in mysql_rows:
             # Obtener barcode de MySQL (normalizado)
             mysql_barcode = str(row[mysql_key_index]).strip()
@@ -133,15 +181,36 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
                 # Si el barcode no existe, se inserta el producto.
                 print(f"❌ Barcode {mysql_barcode} no encontrado en Access. Se creará el producto.")
                 try:
+                    # Asegurarse de que popup_header_menuitemid tenga un valor predeterminado
                     # Armar los parámetros para el INSERT (orden basado en el SELECT)
-                    popup_header_barcode = str(row[11]).strip()
-                    if popup_header_barcode in access_data:
-                        popup_header_menuitemid = access_data[popup_header_barcode][menuitemid_index]
-                        # print(f"✅ Encontrado MenuItemID {popup_header_menuitemid} para barcode {popup_header_barcode}")
-                    else:
-                        popup_header_menuitemid = row[11]
-                        print(f"⚠️ No se encontró en Access el barcode {popup_header_barcode} para MenuItemPopUpHeaderID, se usará el valor original.")
+                    messagebox.showinfo("rows",f"📏 Número de columnas: {len(row)} - Datos: {row}")
+                    popup_header_barcode = row[11]
+                    # if popup_header_barcode is not None else ""
+                    # popup_header_barcode= str(popup_header_barcode)
+                    messagebox.showinfo("popup",f"🔍 Popup Header Barcode: {popup_header_barcode}")
+                    # if row[11] is not None else ""
+                    print(f"🔍 Popup Header Barcode: {popup_header_barcode}")
+                    # messagebox.showinfo("Popup Header Barcode", f"Popup Header Barcode: {popup_header_barcode}")
+                    if popup_header_barcode:
+                    # Ejecutar la consulta en Access para obtener el MENUITEMID
+                        query_popup = f"SELECT MENUITEMID FROM MENUITEMS WHERE BARCODE = '{popup_header_barcode}'"
+                        messagebox.showinfo("query",f"🔍 Query: {query_popup}")
+                        access_cursor.execute(query_popup)
+                        result = access_cursor.fetchone()
+                        messagebox.showinfo("result",f"🔍 Result: {result}")
 
+                        if result:
+                            popup_header_menuitemid = str(result[0])
+                            menuitempopupchoicetext = row[1]
+                            print(f"✅ Encontrado MenuItemID {popup_header_menuitemid} para barcode {popup_header_barcode}")
+                        else:
+                            popup_header_menuitemid = None
+                            menuitempopupchoicetext = None
+                            print(f"⚠️ No se encontró el barcode {popup_header_barcode} en MENUITEMS; se asignará None a MenuItemPopUpHeaderID.")
+                    else:
+                        print("⚠️ El popup_header_barcode está vacío.")
+                    showcaption = True
+                    buttoncolor = 16777215
                     insert_params = (
                         row[1],    # MenuItemText
                         row[2],    # MenuCategoryID
@@ -156,7 +225,7 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
                         popup_header_menuitemid,   # MenuItemPopUpHeaderID
                         convert_boolean(row[12]),   # GSTApplied
                         convert_boolean(row[13]),   # Bar
-                        row[14],   # Barcode
+                        str(row[14]),   # Barcode
                         row[15],   # GasPump
                         convert_boolean(row[16]),   # LiquorTaxApplied
                         convert_decimal(row[17]),   # DineInPrice
@@ -164,10 +233,12 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
                         convert_decimal(row[19]),   # DriveThruPrice
                         convert_decimal(row[20]),   # DeliveryPrice
                         convert_boolean(row[21]),   # OrderByWeight
-                        row[1], #MenuItemPopUpChoiceText
+                        menuitempopupchoicetext, #MenuItemPopUpChoiceText
                         row[1], #MenuItemDescription
                         row[14],    # ROWGUID
                         menuitemnotification,    # MenuItemNotification
+                        buttoncolor,    # buttoncolor
+                        showcaption,    # showcaption
                         synchver_value  # synchver (sin formatear)
                     )
                     insert_query = inserts[table]
@@ -175,14 +246,14 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
                     insert_query_debug = insert_query
                     for value in insert_params:
                         insert_query_debug = insert_query_debug.replace("?", f"'{value}'", 1)
-                    # print(f"🔍 INSERT QUERY FINAL para {mysql_barcode}: {insert_query_debug}")
+                    print(f"🔍 INSERT QUERY FINAL para {mysql_barcode}: {insert_query_debug}")
                     update_params = replace_none_with_null(insert_params)
                     print(f"🔍 DATOS: {update_params}")
                     access_cursor.execute(insert_query, insert_params)
                     print(f"🔄 Insertado MenuItems para barcode: {mysql_barcode}")
                 except Exception as ex:
                     print(f"❌ Error al insertar para barcode {mysql_barcode}: {ex}")
-                    messagebox.showerror("Error"f"❌ Error al insertar para barcode {mysql_barcode}: {ex}")
+                    messagebox.showerror("Error",f"❌ Error al insertar para barcode {mysql_barcode}: {ex}")
                 continue  # Pasa al siguiente registro
 
             # Si el producto existe, obtener su registro de Access
@@ -203,68 +274,97 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
             else:
                 access_synchver_dt = None
 
+            # Asegurar que updated_at y access_synchver_dt son datetime
+            if updated_at and access_synchver_dt:
+                if not isinstance(updated_at, datetime):
+                    try:
+                        updated_at = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        print(f"⚠️ Error al convertir updated_at ({updated_at}) a datetime")
+                        updated_at = None
+
+                if not isinstance(access_synchver_dt, datetime):
+                    try:
+                        access_synchver_dt = datetime.strptime(access_synchver_dt, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        print(f"⚠️ Error al convertir access_synchver_dt ({access_synchver_dt}) a datetime")
+                        access_synchver_dt = None
+
             # Actualizar solo si SynchVer no existe o si updated_at es mayor que SynchVer
-            if access_synchver_dt is not None and updated_at <= access_synchver_dt:
+            if isinstance(updated_at, datetime) and isinstance(access_synchver_dt, datetime) and updated_at > access_synchver_dt:
                 # print(f"🔹 No se actualiza {mysql_barcode}: updated_at ({updated_at}) <= SynchVer ({access_synchver_dt})")
-                continue
+                try:
+                    updated_at = datetime.strftime(updated_at,"%Y-%m-%d %I:%M:%S")
+                    # print(updated_at)
+                    # Asegurarse de que popup_header_menuitemid tenga un valor predeterminado
+                    popup_header_menuitemid = None
+                    menuitempopupchoicetext = None
+                    popup_header_barcode = str(row[11]).strip() if row[11] is not None else ""
+                    if popup_header_barcode:
+                    # Ejecutar la consulta en Access para obtener el MENUITEMID
+                        query_popup = f"SELECT MENUITEMID FROM MENUITEMS WHERE BARCODE = '{popup_header_barcode}'"
+                        access_cursor.execute(query_popup)
+                        result = access_cursor.fetchone()
 
-            try:
-                updated_at = datetime.strftime(updated_at,"%Y-%m-%d %I:%M:%S")
-                print(updated_at)
-                popup_header_barcode = str(row[11]).strip()
-                if popup_header_barcode in access_data:
-                    popup_header_menuitemid = access_data[popup_header_barcode][menuitemid_index]
-                    # print(f"✅ Encontrado MenuItemID {popup_header_menuitemid} para barcode {popup_header_barcode}")
-                else:
-                    popup_header_menuitemid = row[11]
-                    print(f"⚠️ No se encontró en Access el barcode {popup_header_barcode} para MenuItemPopUpHeaderID, se usará el valor original.")
+                        if result:
+                            popup_header_menuitemid = str(result[0])
+                            menuitempopupchoicetext = row[1]
+                            print(f"✅ Encontrado MenuItemID {popup_header_menuitemid} para barcode {popup_header_barcode}")
+                        else:
+                            popup_header_menuitemid = None
+                            menuitempopupchoicetext = None
+                            print(f"⚠️ No se encontró el barcode {popup_header_barcode} en MENUITEMS; se asignará None a MenuItemPopUpHeaderID.")
+                    else:
+                        print("⚠️ El popup_header_barcode está vacío.")
+                    buttoncolor = 16777215
+                    update_params = (
+                        row[1],    # MenuItemText
+                        row[2],    # MenuCategoryID
+                        row[3],    # MenuGroupID
+                        row[4],    # DisplayIndex
+                        convert_decimal(row[5]),    # DefaultUnitPrice
+                        convert_boolean(row[6]),
+                        convert_boolean(row[7]),
+                        convert_boolean(row[8]),
+                        convert_boolean(row[9]),
+                        row[10],   # MenuItemType
+                        popup_header_menuitemid,   # MenuItemPopUpHeaderID
+                        convert_boolean(row[12]),   # GSTApplied
+                        convert_boolean(row[13]),   # Bar
+                        str(row[14]),   # Barcode
+                        row[15],   # GasPump
+                        convert_boolean(row[16]),   # LiquorTaxApplied
+                        convert_decimal(row[17]),   # DineInPrice
+                        convert_decimal(row[18]),   # TakeOutPrice
+                        convert_decimal(row[19]),   # DriveThruPrice
+                        convert_decimal(row[20]),   # DeliveryPrice
+                        convert_boolean(row[21]),   # OrderByWeight
+                        menuitempopupchoicetext, #MenuItemPopUpChoiceText
+                        row[1], #MenuItemDescription
+                        buttoncolor,    # buttoncolor
+                        updated_at,  # synchver (nuevo updated_at sin formatear)
+                        mysql_barcode    # WHERE barcode = ?
+                    )
+                except Exception as ex:
+                    print(f"❌ Error al preparar parámetros para barcode {mysql_barcode}: {ex}")
+                    continue
 
-                update_params = (
-                    row[1],    # MenuItemText
-                    row[2],    # MenuCategoryID
-                    row[3],    # MenuGroupID
-                    row[4],    # DisplayIndex
-                    convert_decimal(row[5]),    # DefaultUnitPrice
-                    convert_boolean(row[6]),
-                    convert_boolean(row[7]),
-                    convert_boolean(row[8]),
-                    convert_boolean(row[9]),
-                    row[10],   # MenuItemType
-                    popup_header_menuitemid,   # MenuItemPopUpHeaderID
-                    convert_boolean(row[12]),   # GSTApplied
-                    convert_boolean(row[13]),   # Bar
-                    row[14],   # Barcode
-                    row[15],   # GasPump
-                    convert_boolean(row[16]),   # LiquorTaxApplied
-                    convert_decimal(row[17]),   # DineInPrice
-                    convert_decimal(row[18]),   # TakeOutPrice
-                    convert_decimal(row[19]),   # DriveThruPrice
-                    convert_decimal(row[20]),   # DeliveryPrice
-                    convert_boolean(row[21]),   # OrderByWeight
-                    row[1], #MenuItemPopUpChoiceText
-                    row[1], #MenuItemDescription
-                    updated_at,  # synchver (nuevo updated_at sin formatear)
-                    mysql_barcode    # WHERE barcode = ?
-                )
-            except Exception as ex:
-                print(f"❌ Error al preparar parámetros para barcode {mysql_barcode}: {ex}")
-                continue
+                update_query = updates[table]
+                update_query_debug = update_query
+                for value in update_params:
+                    update_query_debug = update_query_debug.replace("?", f"'{value}'", 1)
+                # update_params = replace_none_with_null(update_params)
+                print(f"🔍 UPDATE QUERY FINAL para {mysql_barcode}: {update_query_debug}")
 
-            update_query = updates[table]
-            update_query_debug = update_query
-            for value in update_params:
-                update_query_debug = update_query_debug.replace("?", f"'{value}'", 1)
-            # update_params = replace_none_with_null(update_params)
-            # print(f"🔍 UPDATE QUERY FINAL para {mysql_barcode}: {update_query_debug}")
-
-            try:
-                access_cursor.execute(update_query, update_params)
-                # print(f"🔄 Actualizado MenuItems para barcode: {mysql_barcode}")
-            except Exception as ex:
-                print(f"❌ Error al ejecutar UPDATE para barcode {mysql_barcode}: {ex}")
-                messagebox.showerror("Error"f"❌ Error al ejecutar UPDATE para barcode {mysql_barcode}: {ex}")
-                # print(f"Query: {update_query_debug}, Params: {update_params}")
-
+                try:
+                    print(f"🔍 DATOS: {update_params}")
+                    print(f"🔍 UPDATE QUERY FINAL para {mysql_barcode}: {update_query_debug}")
+                    access_cursor.execute(update_query, update_params)
+                    # print(f"🔄 Actualizado MenuItems para barcode: {mysql_barcode}")
+                except Exception as ex:
+                    print(f"❌ Error al ejecutar UPDATE para barcode {mysql_barcode}: {ex}")
+                    messagebox.showerror("Error",f"❌ Error al ejecutar UPDATE para barcode {mysql_barcode}: {ex}")
+                    print(f"Query: {update_query_debug}, Params: {update_params}")
         # Confirmar transacción
         try:
             access_conn.commit()
@@ -288,3 +388,9 @@ def updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor):# 📌 
             mysql_conn.close()
         print("✅ Conexiones cerradas.")
         return "Proceso finalizado."
+def updatep():
+    access_conn, access_cursor, mysql_conn, mysql_cursor = dbconn()
+    updateproducts(access_conn, access_cursor, mysql_conn, mysql_cursor)
+
+updatep()
+# print("============================================")

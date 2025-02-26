@@ -62,7 +62,7 @@ class GroupsResource extends Resource
                     if ($operation === 'edit' && $record) {
                         $query = $query->filter(fn ($value) => $value != $record->displayindex);
                     }
-                    $allPossibleValues = range(-1, 31);
+                    $allPossibleValues = range(-1, 35);
                     $availableValues = collect($allPossibleValues)
                         ->filter(function ($value) use ($query) {
                             return !$query->contains($value);

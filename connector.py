@@ -55,9 +55,9 @@ def dbconn():
 
     mysql_conn_str = (
         "DRIVER={MySQL ODBC 9.2 ANSI Driver};"
-        "SERVER=127.0.0.1;PORT=3306;"
-        "DATABASE=laravel;"
-        "USER=root;PASSWORD=;"
+        "SERVER=solucionesintegralespos.com;PORT=3306;"
+        "DATABASE=u344335374_aldeloposnube;"
+        "USER=u344335374_aldeoadmin;PASSWORD=Sip66353782;"
         "OPTION=3;"
     )
     mysql_conn = pyodbc.connect(mysql_conn_str)
@@ -70,6 +70,7 @@ def ejecutar_timecards():
         access_conn, access_cursor, mysql_conn, mysql_cursor = dbconn()
         timecards(access_conn, access_cursor, mysql_conn, mysql_cursor)
         print("🎯 Proceso finalizado.")
+        print("============================================")
         messagebox.showinfo("Éxito", "Sincronización completada.")
     except Exception as e:
         print(f"❌ Error: {e}")
@@ -96,6 +97,7 @@ def updates_execute():
             access_conn, access_cursor, mysql_conn, mysql_cursor = dbconn()
             insertsdata(access_conn, access_cursor, mysql_conn, mysql_cursor)
             print("🎯 Proceso finalizado.")
+            print("============================================")
         except Exception as e:
             print(f"❌ Error: {e}")
             messagebox.showerror("Error", f"Error en actualización: {e}")
@@ -123,15 +125,17 @@ if os.path.exists(icon_path):
         pass  # Si hay un error, simplemente ignorarlo
 
 logo_label = tk.Label(root)
-if os.path.exists("iconreport.ico"):
+logo_path = os.path.join(path, "logo.png")
+if os.path.exists(logo_path):
     try:
         from PIL import Image, ImageTk
-        img = Image.open("iconreport.ico").resize((100, 100))
+        img = Image.open("logo.png").resize((250, 100))
         logo = ImageTk.PhotoImage(img)
         logo_label.config(image=logo)
         logo_label.image = logo
-    except:
-        pass  # Ignorar si no se puede cargar la imagen
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        messagebox.showerror("Error", f"Error en imagen: {e}")
 logo_label.pack(pady=10)
 
 # 📌 Botones

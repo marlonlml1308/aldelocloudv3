@@ -48,4 +48,36 @@ class Products extends Model
 
         return $basePrice * (1 + ($taxTotal / 100));
     }
+    public function children()
+    {
+        // En esta relación, el campo 'menuitempopupheaderid' en los productos hijos contiene
+        // el barcode del producto padre, que es el campo 'barcode' en el modelo padre.
+        return $this->hasMany(Products::class, 'menuitempopupheaderid', 'barcode');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($product) {
+            // Verifica que el campo 'menuitemtype' haya cambiado de 2 a 1
+            if (
+                $product->isDirty('menuitemtype') &&
+                $product->menuitemtype == 1 &&
+                $product->getOriginal('menuitemtype') == 2
+            ) {
+                // Actualiza los productos hijos:
+                // - menuitempopupheaderid a null,
+                // - displayindex a -1,
+                // - menuiteminactive a true
+                $product->children()->update([
+                    'menuitempopupheaderid' => null,
+                    'displayindex'           => -1,
+                    'menuiteminactive'       => true,
+                ]);
+            }
+        });
+    }
+
+
 }

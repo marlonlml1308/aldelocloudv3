@@ -20,7 +20,7 @@ from tkinter import messagebox
 def updates(access_conn, access_cursor, mysql_conn, mysql_cursor):
     # 📌 Diccionario de queries para obtener datos de MySQL
     queries = {
-        "JobTitles": "SELECT id, jobtitletext, jobtitleinactive,defaultsecuritylevel, updated_at FROM jobTitles",
+        "JobTitles": "SELECT id, jobtitletext, jobtitleinactive,defaultsecuritylevel, updated_at FROM jobtitles",
         "MenuCategories": "SELECT id, menucategorytext, menucategoryinactive, updated_at FROM categories",
         "MenuGroups": "SELECT id, menugrouptext, menugroupinactive, displayindex, updated_at FROM groups",
         "EmployeeFiles": "SELECT id, firstname, lastname, jobtitleid, socialsecuritynumber,securitylevel,accesscode,employeeinactive, updated_at FROM employeefiles",

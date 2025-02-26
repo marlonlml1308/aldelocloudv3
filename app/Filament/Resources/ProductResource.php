@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Filament\Resources\ProductResource\RelationManagers\ChildrenRelationManager;
 use App\Models\Modules;
 use App\Models\Products;
 use App\Models\Taxes;
@@ -20,8 +21,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Filament\Tables\Columns\CheckboxColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
@@ -120,6 +123,11 @@ class ProductResource extends Resource
                             $allPossibleValues = range(-1, 31);
                             $availableValues = collect($allPossibleValues)
                                 ->filter(function ($value) use ($query) {
+                                    // Permite que el valor -1 se repita
+                                    if ($value === -1) {
+                                        return true;
+                                    }
+                                    // Para otros valores, solo incluir si no están presentes en la consulta
                                     return !$query->contains($value);
                                 })
                                 ->mapWithKeys(function ($value) {
@@ -136,9 +144,17 @@ class ProductResource extends Resource
                         ->label('Barcode')
                         ->required()
                         ->maxLength(20)
+                        ->extraAttributes(['pattern' => '^[a-zA-Z0-9]+$'])
+                        ->afterStateHydrated(function ($component, $state) {
+                            $component->state(preg_replace('/[^a-zA-Z0-9]/', '', trim($state)));
+                       })
+                       ->afterStateUpdated(function ($component, $state) {
+                            $component->state(preg_replace('/[^a-zA-Z0-9]/', '', trim($state)));
+                       })
                         ->rule(function (string $operation, ?Model $record = null) {
                             return function ($attribute, $value, $fail) use ($operation, $record) {
                                 if ($value !== null) {
+                                    $value = trim($value);
                                     $query = DB::table('products')
                                         ->where('barcode', $value);
                                     if ($operation === 'edit' && $record) {
@@ -158,26 +174,36 @@ class ProductResource extends Resource
                         ])
                         ->default(1) // Valor por defecto "Producto"
                         ->required()
-                        ->live() // Hace que el cambio se detecte en tiempo real
-                        ->afterStateUpdated(function ($state, callable $set) {
-                            if ($state == 2) { // Si es "Platillo Superior"
-                                $set('displayindex', -1); // Cambia la posición a -1
-                                $set('defaultunitprice', 0); // Cambia el precio a 0
-                            }
-                        }),
+                        ->live(),
                         Select::make('menuitempopupheaderid')
                         ->label('Producto Padre')
                         ->options(fn ($get) => Products::where('barcode', '!=', $get('barcode')) // Excluye el producto actual
+                            ->where('menuitemtype', 2) // Solo productos con menuitemtype = 2
+                            ->where('menugroupid', $get('menugroupid'))
+                            ->where('menuiteminactive', '!=', true)
                             ->pluck('menuitemtext', 'barcode')
                             ->toArray())
-                        ->searchable() // Permite buscar dentro del select
-                        ->preload() // Carga los datos antes de abrir el select
-                        ->nullable(), // Permite no seleccionar un valor
-
+                        ->searchable()    // Permite buscar dentro del select
+                        ->preload()       // Carga los datos antes de abrir el select
+                        ->nullable()      // Permite no seleccionar ningún valor
+                        ->live() // Hace que el cambio se detecte en tiempo real
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if (!is_null($state)) {
+                                $set('displayindex', -1); // Cambia la posición a -1
+                            }
+                        }),
                         Grid::make(4)->schema([
                             Toggle::make('menuiteminactive')
                                 ->label('Inactivo')
-                                ->required(),
+                                ->required()
+                                ->live() // Hace que el cambio se detecte en tiempo real
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    if (($state)== True) {
+                                        $set('displayindex', -1); // Cambia la posición a -1
+                                    } else {
+                                        $set('displayindex', null); // Deja displayindex en null
+                                    }
+                                }),
                             Toggle::make('orderbyweight')
                                 ->label('Ordenar por Peso')
                                 ->required(),
@@ -218,7 +244,6 @@ class ProductResource extends Resource
                     TextInput::make('dineinprice')
                     ->label(fn () => Modules::getModuleName(1))
                     ->numeric()
-                    ->maxLength(8) // Restringe la longitud del texto
                     ->prefix('$') // Agrega el símbolo de moneda
                     ->extraInputAttributes([
                         'step' => '0.01', // Permite valores con dos decimales
@@ -250,7 +275,6 @@ class ProductResource extends Resource
                     TextInput::make('takeoutprice')
                     ->label(fn () => Modules::getModuleName(2))
                     ->numeric()
-                    ->maxLength(8) // Restringe la longitud del texto
                     ->prefix('$') // Agrega el símbolo de moneda
                     ->extraInputAttributes([
                         'step' => '0.01', // Permite valores con dos decimales
@@ -282,7 +306,6 @@ class ProductResource extends Resource
                     TextInput::make('drivethruprice')
                     ->label(fn () => Modules::getModuleName(3))
                     ->numeric()
-                    ->maxLength(8) // Restringe la longitud del texto
                     ->prefix('$') // Agrega el símbolo de moneda
                     ->extraInputAttributes([
                         'step' => '0.01', // Permite valores con dos decimales
@@ -314,7 +337,6 @@ class ProductResource extends Resource
                     TextInput::make('DeliveryPrice')
                     ->label(fn () => Modules::getModuleName(4))
                     ->numeric()
-                    ->maxLength(8) // Restringe la longitud del texto
                     ->prefix('$') // Agrega el símbolo de moneda
                     ->extraInputAttributes([
                         'step' => '0.01', // Permite valores con dos decimales
@@ -360,8 +382,8 @@ class ProductResource extends Resource
                 TextColumn::make('groups.menugrouptext')
                 ->label('Grupo')
                 ->sortable(),
-                CheckboxColumn::make('menuiteminactive')->label('Inactivo')
-                ->disabled(),
+                IconColumn::make('menuiteminactive')->label('Inactivo')
+                ->boolean(),
                 TextColumn::make('menuitemtaxable')
                 ->label(fn () => Taxes::getTaxName(1)) // Obtiene el nombre del impuesto 1
                 ->formatStateUsing(fn ($state) => $state ? 'Sí' : 'No')
@@ -387,6 +409,8 @@ class ProductResource extends Resource
                 ->relationship('groups','menugrouptext')
                 ->searchable()
                 ->preload(),
+                TernaryFilter::make('menuiteminactive')
+                ->label('Inactivo'),
                 SelectFilter::make('tax_filter')
                 ->label('Impuesto')
                 ->options(self::getTaxOptions())
@@ -405,7 +429,7 @@ class ProductResource extends Resource
                         }
                     });
                 }),
-            ], layout: FiltersLayout::AboveContent)->filtersFormColumns(3)
+            ], layout: FiltersLayout::AboveContent)->filtersFormColumns(4)
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -417,12 +441,6 @@ class ProductResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
 
     public static function getPages(): array
     {
@@ -449,6 +467,13 @@ class ProductResource extends Resource
         // Aquí asignamos el precio base (almacenado en 'price_base') a la propiedad que se guarda en el modelo
         $data['defaultunitprice'] = $data['price_base'];
         return $data;
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ChildrenRelationManager::class,
+        ];
     }
 
 }
