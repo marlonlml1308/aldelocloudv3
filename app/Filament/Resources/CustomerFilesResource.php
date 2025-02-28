@@ -50,28 +50,35 @@ class CustomerFilesResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('customername')
                     ->label('Nombre del Cliente')
-                    ->searchable(),
+                    ->searchable()
+                    ->disabledClick(),
                 Tables\Columns\TextColumn::make('deliveryaddress')
                     ->label('# de Calle')
-                    ->searchable(),
+                    ->searchable()
+                    ->disabledClick(),
                 Tables\Columns\TextColumn::make('deliveryremarks')
                     ->label('Nombre de Calle')
-                    ->searchable(),
+                    ->searchable()
+                    ->disabledClick(),
                 Tables\Columns\TextColumn::make('deliverycharge')
                     ->label('Cargo de Entrega')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->disabledClick(),
                 Tables\Columns\TextColumn::make('phonenumber')
                     ->label('Telefono')
-                    ->searchable(),
+                    ->searchable()
+                    ->disabledClick(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
                     ->sortable()
+                    ->disabledClick()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
+                    ->disabledClick()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

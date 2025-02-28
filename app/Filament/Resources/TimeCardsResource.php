@@ -57,7 +57,10 @@ class TimeCardsResource extends Resource
                 //           ->orWhere('lastname', 'like', "%{$search}%");
                 //     });
                 // }),
-                Tables\Columns\TextColumn::make('workdate')->date()->label('Fecha entrada'),
+                Tables\Columns\TextColumn::make('workdate')
+                ->date()
+                ->label('Fecha entrada')
+                ->disabledClick(),
                 Tables\Columns\TextColumn::make('clockintime')
                 ->label('Hora de Entrada')
                 ->dateTime('h:i A') // Formato 12 horas con AM/PM
