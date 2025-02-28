@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\ChartWidgetTest;
 use App\Filament\Widgets\CompanyOverview;
+use App\Filament\Widgets\ErrorsReportWidget;
 use App\Filament\Widgets\SalesChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -49,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 CompanyOverview::class,
                 SalesChart::class,
                 ChartWidgetTest::class,
+                \App\Filament\Widgets\ErrorsReportWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

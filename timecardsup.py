@@ -1,6 +1,7 @@
 import pyodbc
 from datetime import datetime
 import json
+from tkinter import messagebox
 
 def timecards(access_conn, access_cursor, mysql_conn, mysql_cursor):
     # 📌 Configuración de la conexión a Access
@@ -34,8 +35,9 @@ def timecards(access_conn, access_cursor, mysql_conn, mysql_cursor):
             "EmployeeTimecards": f"""SELECT employeeid, Format(workdate, 'yyyy-mm-dd') AS workdate1,Format(clockintime, 'yyyy-mm-dd hh:nn:ss') AS clockintime1,
         Format(clockouttime, 'yyyy-mm-dd hh:nn:ss') AS clockouttime1, Format(break1begintime, 'yyyy-mm-dd hh:nn:ss') AS break1begintime1,
         Format(break1endtime, 'yyyy-mm-dd hh:nn:ss') AS break1endtime1,TotalWorkMinutes, {branch} AS branch
-        FROM EmployeeTimeCards WHERE SynchVer IS NULL AND clockouttime IS NOT NULL and WORKDATE >= #01/01/2025#""",
+        FROM EmployeeTimeCards WHERE SynchVer IS NULL AND clockouttime IS NOT NULL""",
         }
+        #  and WORKDATE >= #01/01/2025#
         # print(queries)
 
         # **4️⃣ Diccionario de INSERTS**
@@ -86,6 +88,7 @@ def timecards(access_conn, access_cursor, mysql_conn, mysql_cursor):
                             access_conn.commit()
                         except Exception as e:
                             print(f"❌ Error ejecutando query en {table}: {e}")
+                            messagebox.showerror("Error", f"❌ Error ejecutando query en {table}: {e}")
                             print(f"🔍 Query con error: {query_str}")
                 # 🔹 Confirmar transacción en Access
                 mysql_cursor.commit()
@@ -93,10 +96,12 @@ def timecards(access_conn, access_cursor, mysql_conn, mysql_cursor):
                 # 🔴 Rollback SOLO en la tabla actual
                 access_conn.rollback()
                 print(f"❌ Error en {table}: {e}")
+                messagebox.showerror("Error", f"❌ Error en {table}: {e}")
 
         mysql_conn.commit()
     except pyodbc.Error as e:
         print(f"❌ Error: {e}")
+        messagebox.showerror("Error", f"❌ Error general: {e}")
         mysql_conn.rollback()
         access_conn.rollback()
     finally:
