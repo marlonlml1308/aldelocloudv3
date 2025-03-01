@@ -48,7 +48,7 @@ class ProductResource extends Resource
                     ->label('Producto')
                     ->required()
                     ->maxLength(22)
-                    ->dehydrateStateUsing(fn (string $state) => strtoupper($state))
+                    ->dehydrateStateUsing(fn (string $state) => ($state))
                     ->rule(function (string $operation, ?Model $record = null) {
                         return function ($attribute, $value, $fail) use ($operation, $record) {
                             if ($value !== null) {
